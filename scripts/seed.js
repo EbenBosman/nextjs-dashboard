@@ -6,6 +6,10 @@ const {
   users,
 } = require('../app/lib/placeholder-data.js');
 const bcrypt = require('bcrypt');
+import NextAuth from 'next-auth';
+import { authConfig } from './auth.config';
+import Credentials from 'next-auth/providers/credentials';
+import { z } from 'zod';
 
 async function seedUsers(client) {
   try {
@@ -61,7 +65,7 @@ async function seedInvoices(client) {
   );
 `;
 
-    console.log(`Created "invoices" table`);
+    // console.log(`Created "invoices" table`);
 
     // Insert data into the "invoices" table
     const insertedInvoices = await Promise.all(
@@ -100,7 +104,7 @@ async function seedCustomers(client) {
       );
     `;
 
-    console.log(`Created "customers" table`);
+    // console.log(`Created "customers" table`);
 
     // Insert data into the "customers" table
     const insertedCustomers = await Promise.all(
@@ -135,7 +139,7 @@ async function seedRevenue(client) {
       );
     `;
 
-    console.log(`Created "revenue" table`);
+    // console.log(`Created "revenue" table`);
 
     // Insert data into the "revenue" table
     const insertedRevenue = await Promise.all(
@@ -176,4 +180,17 @@ main().catch((err) => {
     'An error occurred while attempting to seed the database:',
     err,
   );
+});
+
+export const { auth, signIn, signOut } = NextAuth({
+  ...authConfig,
+  providers: [
+    Credentials({
+      async authorize(credentials) {
+        const parsedCredentials = z
+          .object({ email: z.string().email(), password: z.string().min(6) })
+          .safeParse(credentials);
+      },
+    }),
+  ],
 });
